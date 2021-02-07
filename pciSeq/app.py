@@ -1,10 +1,13 @@
 import os
 import pandas as pd
 import numpy as np
+import tempfile
+import platform
+from pathlib import Path
 from scipy.sparse import coo_matrix, save_npz, load_npz
 from pciSeq.src.cell_call.main import VarBayes
 from pciSeq.src.preprocess.spot_labels import stage_data
-from pciSeq.src.viewer.utils import splitter_mb
+from pciSeq.src.viewer.utils import splitter_mb, content
 from pciSeq import config
 import logging
 
@@ -81,12 +84,16 @@ def fit(iss_spots, coo, scRNAseq, opts=None):
 
     # 2. prepare the data
     logger.info('Preprocessing data')
-    _cells, _cell_boundaries, _spots = stage_data(iss_spots, coo)
+    _cells, cell_boundaries, _spots = stage_data(iss_spots, coo)
 
     # 3. cell typing
     logger.info('Start cell typing')
     cellData, geneData = cell_type(_cells, _spots, scRNAseq, cfg)
     logger.info('Done')
+
+    save_data = True
+    if save_data:
+        write_to_disk(cellData, geneData, cell_boundaries)
     return cellData, geneData
 
 
@@ -95,22 +102,6 @@ def cell_type(_cells, _spots, scRNAseq, ini):
     varBayes = VarBayes(_cells, _spots, scRNAseq, ini)
     cellData, geneData = varBayes.run()
 
-    save_data = False
-    if save_data:
-        # 2. save the results
-        out_dir = ini['out_dir']
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
-
-        cellData.to_csv(os.path.join(out_dir, 'cellData.tsv'), sep='\t', index=False)
-        logger.info('Saved at %s' % (os.path.join(out_dir, 'cellData.tsv')))
-
-        geneData.to_csv(os.path.join(out_dir, 'geneData.tsv'), sep='\t', index=False)
-        logger.info('Saved at %s' % (os.path.join(out_dir, 'geneData.tsv')))
-
-        # Write to the disk as tsv of 99MB each
-        splitter_mb(cellData, os.path.join(out_dir, 'cellData'), 99)
-        splitter_mb(geneData, os.path.join(out_dir, 'geneData'), 99)
     return cellData, geneData
 
 
@@ -138,6 +129,33 @@ def init(opts):
             logger.info('%s is set to %s' % (item[0], cfg[item[0]]))
 
     return cfg
+
+
+def write_to_disk(cellData, geneData, cell_boundaries):
+    temp_dir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+
+    out_dir = os.path.join(temp_dir, 'pciSeq')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    cellData.to_csv(os.path.join(out_dir, 'cellData.tsv'), sep='\t', index=False)
+    logger.info('Saved at %s' % (os.path.join(out_dir, 'cellData.tsv')))
+
+    geneData.to_csv(os.path.join(out_dir, 'geneData.tsv'), sep='\t', index=False)
+    logger.info('Saved at %s' % (os.path.join(out_dir, 'geneData.tsv')))
+
+    cell_boundaries.to_csv(os.path.join(out_dir, 'cell_boundaries.tsv'), sep='\t', index=False)
+    logger.info('Saved at %s' % (os.path.join(out_dir, 'cell_boundaries.tsv')))
+
+    # Write to the disk as tsv of 99MB each
+    splitter_mb(cellData, os.path.join(out_dir, 'cellData'), 99)
+    content(os.path.join(out_dir, 'cellData'))
+
+    splitter_mb(geneData, os.path.join(out_dir, 'geneData'), 99)
+    content(os.path.join(out_dir, 'geneData'))
+
+    splitter_mb(cell_boundaries, os.path.join(out_dir, 'cell_boundaries'), 99)
+    content(os.path.join(out_dir, 'cell_boundaries'))
 
 
 if __name__ == "__main__":

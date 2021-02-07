@@ -1,5 +1,6 @@
 """ Functions to manipulate flat files (split or minify them) """
 from typing import Union
+import pathlib
 import pandas as pd
 import numpy as np
 import json
@@ -241,6 +242,28 @@ def _round_data2(df, name):
     return [list(map(_format, x)) for x in df[name]]
 
 
+def content(target_dir):
+    d = []
+    for tsv_file in pathlib.Path(target_dir).glob('*.tsv'):
+        d.append(content_helper(str(tsv_file)))
+    # _content = json.dumps(d)
+    with open(os.path.join(target_dir, 'content.json'), 'w') as outfile:
+        json.dump(d, outfile, indent=4)
+
+
+def content_helper(str_path):
+    d = {}
+    d["name"] = os.path.basename(str_path)
+    d["path"] = ""
+    d["sha"] = ""
+    d["size"] = os.stat(str_path).st_size  # size in bytes
+    d["url"] = ""
+    d["html_url"] = ""
+    d["git_url"] = ""
+    d["download_url"] = str_path
+    d["type"] = "file"
+
+    return d
 
 if __name__ == "__main__":
     mb_size = 99
