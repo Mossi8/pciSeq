@@ -30,6 +30,10 @@ function dapi(cfg) {
         maxZoom: 10
     }).addTo(map);
 
+    L.control.scale({
+        imperial: false
+    }).addTo(map);
+
     function getTaxonomy(gene) {
         if (glyphMap.get(gene)) {
             out = glyphMap.get(gene).taxonomy
