@@ -34,14 +34,14 @@ function add_spots_patched(all_geneData, map) {
     };
 
     function scaleRamp(z) {
-        return z === 0 ? 0.125*2 :
-            z === 1 ? 0.5:
-                z === 2 ? 0.5 :
-                    z === 3 ? 0.375 :
-                        z === 4 ? 0.1875 :
-                            z === 5 ? 0.150 :
-                                z === 6 ? 0.075 : // every time you zoom in, leaflet scales up by 2. Divide here by 2 to keep the marker the same as in zoom level 5
-                                    z === 7 ? 0.03125 : 1
+        return z === 0 ? 0.41732 :
+            z === 1 ? 0.41732:
+                z === 2 ? 0.41732 :
+                    z === 3 ? 0.41732 :
+                        z === 4 ? 0.41732/2 :
+                            z === 5 ? 0.41732/4 :
+                                z === 6 ? 0.41732/8 : // every time you zoom in, leaflet scales up by 2. Divide here by 2 to keep the marker the same as in zoom level 5
+                                    z === 7 ? 0.41732/16 : 1
     }
 
 
