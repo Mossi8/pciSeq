@@ -36,7 +36,7 @@ var cellBoundaries,
     hiddenControls = false,
     myTreeControl,
     cellClasses,
-    zoomSwitch = 7; // determines when the glyphs will start showing up
+    zoomSwitch = 6; // determines when the glyphs will start showing up
 
 
 localStorage.clear();
