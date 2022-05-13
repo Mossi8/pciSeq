@@ -12,7 +12,7 @@ from pciSeq.src.cell_call.log_config import attach_to_log, logger
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-def fit(iss_spots: pd.DataFrame, coo: coo_matrix, scRNAseq: pd.DataFrame, opts: dict = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def fit(iss_spots: pd.DataFrame, scRNAseq: pd.DataFrame, opts: dict = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Main entry point for pciSeq.
 
@@ -76,7 +76,7 @@ def fit(iss_spots: pd.DataFrame, coo: coo_matrix, scRNAseq: pd.DataFrame, opts: 
 
     # 2. prepare the data
     logger.info(' Preprocessing data')
-    _cells, cellBoundaries, _spots = stage_data(iss_spots, coo)
+    _cells, cellBoundaries, _spots = stage_data(iss_spots)
 
     # 3. cell typing
     cellData, geneData = cell_type(_cells, _spots, scRNAseq, cfg)

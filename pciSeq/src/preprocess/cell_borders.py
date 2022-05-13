@@ -4,7 +4,7 @@
 # NOTE: 30-Nov-2020: I am using pydip to get the cell boundaries. It is a lot faster but I need to
 # further test this and compare the cell boundaries with the previous way i used to do it
 
-import cv2
+#import cv2
 import pandas as pd
 import numpy as np
 from scipy.sparse import coo_matrix
