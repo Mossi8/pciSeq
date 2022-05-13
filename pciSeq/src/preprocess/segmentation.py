@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import cv2
+#import cv2
 from scipy import ndimage
 from skimage import morphology
 from skimage import exposure, feature
