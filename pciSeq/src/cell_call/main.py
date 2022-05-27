@@ -4,7 +4,7 @@ from pciSeq.src.cell_call.datatypes import Cells, Spots, Genes, SingleCell, Cell
 from pciSeq.src.cell_call.summary import collect_data
 import pciSeq.src.cell_call.utils as utils
 from pciSeq.src.cell_call.log_config import logger
-
+from tqdm import trange
 
 class VarBayes:
     def __init__(self, _cells_df, _spots_df, scRNAseq, config):
@@ -38,7 +38,7 @@ class VarBayes:
         max_iter = self.config['max_iter']
 
         self.initialise()
-        for i in range(max_iter):
+        for i in trange(max_iter):
 
             # 1. For each cell, calc the expected gene counts
             self.geneCount_upd()
