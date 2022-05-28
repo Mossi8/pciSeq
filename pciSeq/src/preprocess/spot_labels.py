@@ -11,7 +11,7 @@ from typing import Tuple
 from scipy.sparse import coo_matrix, csr_matrix
 from pciSeq.src.preprocess.cell_borders import extract_borders_dip
 from pciSeq.src.cell_call.log_config import logger
-from shapely import geometry
+
 
 def inside_cell(label_image, spots) -> np.array:
     if isinstance(label_image, coo_matrix):
@@ -41,21 +41,32 @@ def remap_labels(coo):
     return out
 
 
-def stage_data(spots: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def stage_data(spots: pd.DataFrame, coo: coo_matrix) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Reads the spots and the label image that are passed in and calculates which cell (if any) encircles any
     given spot within its boundaries. It also retrieves the coordinates of the cell boundaries, the cell
     centroids and the cell area
     """
     logger.info(' Number of spots passed-in: %d' % spots.shape[0])
+    logger.info(' Number of segmented cells: %d' % len(set(coo.data)))
+    logger.info(' Segmentation array implies that image has width: %dpx and height: %dpx' % (coo.shape[1], coo.shape[0]))
+    mask_x = (spots.x >= 0) & (spots.x <= coo.shape[1])
+    mask_y = (spots.y >= 0) & (spots.y <= coo.shape[0])
+    spots = spots[mask_x & mask_y]
+
     # 1. Find which cell the spots lie within
-    spots = spots
+    inc = inside_cell(coo.tocsr(), spots)
+    spots = spots.assign(label=inc)
 
     # 2. Get cell centroids and area
-    props_df, cell_boundaries = extract_borders_polygons(spots)
+    props = skmeas.regionprops(coo.toarray().astype(np.int32))
+    props_df = pd.DataFrame(data=[(d.label, d.area, d.centroid[1], d.centroid[0]) for d in props],
+                      columns=['label', 'area', 'x_cell', 'y_cell'])
 
     # 3. Get the cell boundaries
-    assert props_df.shape[0] == cell_boundaries.shape[0] 
+    cell_boundaries = extract_borders_dip(coo.toarray().astype(np.uint32), 0, 0, [0])
+
+    assert props_df.shape[0] == cell_boundaries.shape[0] == np.unique(coo.data).shape[0]
     assert set(spots.label[spots.label > 0]) <= set(props_df.label)
 
     cells = props_df.merge(cell_boundaries)
@@ -68,23 +79,5 @@ def stage_data(spots: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Data
     _cells = cells[['label', 'area', 'x_cell', 'y_cell']].rename(columns={'x_cell': 'x', 'y_cell': 'y'})
     _cell_boundaries = cells[['label', 'coords']].rename(columns={'label': 'cell_id'})
     _spots = spots[['x', 'y', 'label', 'Gene', 'x_cell', 'y_cell']].rename(columns={'Gene': 'target', 'x': 'x_global', 'y': 'y_global'})
+
     return _cells, _cell_boundaries, _spots
-
-def extract_borders_polygons(df):
-    grp_label = df.groupby('label')
-    labels, polygons, centroidsX, centroidsY, area = [], [], [], [], []
-    for label,content in grp_label:
-
-        pol= (geometry.Polygon(geometry.MultiPoint(content[['x','y']].values).convex_hull))
-        polygons.append(np.array(pol.exterior.coords))
-        cent = list(pol.centroid.coords)[0]
-
-        centroidsX.append(cent[0])
-        centroidsY.append(cent[1])
-        area.append(pol.area)
-        
-        labels.append(label)
-    df_boundaries= pd.DataFrame({'label':labels,'coords': polygons})
-    df_centroids = pd.DataFrame({'label':labels, 'area':area, 'x_cell': centroidsX, 'y_cell': centroidsY})
-    return df_centroids, df_boundaries
-    

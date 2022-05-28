@@ -12,10 +12,9 @@ from pciSeq.src.cell_call.log_config import attach_to_log, logger
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-def fit(iss_spots: pd.DataFrame, scRNAseq: pd.DataFrame, opts: dict = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def fit(iss_spots: pd.DataFrame, coo: coo_matrix, scRNAseq: pd.DataFrame, opts: dict = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Main entry point for pciSeq.
-
     Parameters
     ----------
     iss_spots : pandas.DataFrame
@@ -25,25 +24,21 @@ def fit(iss_spots: pd.DataFrame, scRNAseq: pd.DataFrame, opts: dict = None) -> T
             Name: Gene, dtype: string, The gene name
             Name: x, dtype: int64, X-axis coordinate of the spot
             Name: y, dtype: int64, Y-axis coordinate of the spot
-
     coo : scipy.sparse.coo_matrix
         A label image array as a coo_matrix datatype. The label denote
         which cell the corresponding pixel 'belongs' to. If label is
         zero, the pixel is on the background
-
     scRNAseq : pandas.DataFrame
         Index:
             The gene name
         Columns:
             The column headers are the cell classes and the data are uint32
-
     opts : dictionary (Optional)
         A dictionary to pass-in user-defined hyperparameter values. They override the default
         values as these are set by the config.py file. For example to exclude genes Npy and
         Vip you can define opts as:
             opts = {'exclude_genes': ['Npy', 'Vip']}
         and pass that dict to the fit function as the last argument
-
     Returns
     ------
     cellData : pandas.DataFrame
@@ -57,7 +52,6 @@ def fit(iss_spots: pd.DataFrame, scRNAseq: pd.DataFrame, opts: dict = None) -> T
             Name: CellGeneCount, dtype: Object,array-like of the corresponding gene counts
             Name: ClassName, dtype: Object, array-like of the genes probable classes for the cell
             Name: Prob, dtype: Object, array-like array-like of the corresponding cell class probabilities
-
     geneData : pandas.DataFrame
         Index:
             RangeIndex
@@ -76,7 +70,7 @@ def fit(iss_spots: pd.DataFrame, scRNAseq: pd.DataFrame, opts: dict = None) -> T
 
     # 2. prepare the data
     logger.info(' Preprocessing data')
-    _cells, cellBoundaries, _spots = stage_data(iss_spots)
+    _cells, cellBoundaries, _spots = stage_data(iss_spots, coo)
 
     # 3. cell typing
     cellData, geneData = cell_type(_cells, _spots, scRNAseq, cfg)
@@ -158,4 +152,3 @@ if __name__ == "__main__":
     # main task
     # _opts = {'max_iter': 10}
     fit(_iss_spots, _coo, _scRNAseq)
-
