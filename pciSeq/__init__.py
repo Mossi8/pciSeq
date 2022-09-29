@@ -55,8 +55,8 @@ from pciSeq.app import cell_type
 from pciSeq.src.preprocess.spot_labels import stage_data
 import pciSeq.src.cell_call.utils as utils
 
-if check_libvips():
-    from pciSeq.src.viewer.stage_image import tile_maker
+#if check_libvips():
+#    from pciSeq.src.viewer.stage_image import tile_maker
 # else:
 #     logger.warning('>>>> libvips is not installed. Please see https://www.libvips.org/install.html <<<<')
 #     logger.warning('>>>> This is required if you want to do your own viewer. <<<<')

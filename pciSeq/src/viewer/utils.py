@@ -10,9 +10,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from pciSeq import check_libvips
+'''from pciSeq import check_libvips
 if check_libvips():
-    import pyvips
+    import pyvips'''
 
 
 def splitter_mb(df, dir_path, mb_size):
