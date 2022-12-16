@@ -38,7 +38,10 @@ DEFAULT = {
     # the misreads to. Could be seen as the background. Hence, by default the algorithm tries examines
     # whether any of the 3 nearest cells is a possible parent cell to a given cell or whether the spot is
     # a misread
-    'nNeighbors': 3,
+    
+    #'nNeighbors': 3,
+    'nNeighbors': 5,
+
 
     # A gamma distributed variate from Gamma(rSpot, 1) is applied to the mean expression, hence the counts
     # are distributed according to a Negative Binomial distribution.
@@ -54,6 +57,6 @@ DEFAULT = {
     # cell types (aka clusters, aka classes) in the single cell data then you might need at least 64GB on
     # your machine. Changing the datatype to a float16 or float32 will help keeping RAM usage to a lower
     # level
-    'dtype': np.float64,
+    'dtype': np.float32,
 }
 
